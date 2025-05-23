@@ -3,7 +3,7 @@ from streamlit_drawable_canvas import st_canvas
 import numpy as np
 import joblib
 from PIL import Image, ImageOps
-import cv2
+from scipy import ndimage
 
 st.set_page_config(
     page_title="MNIST Digit Recognition",
@@ -21,9 +21,9 @@ def load_model():
         st.error("Model files not found! Please run the training script first.")
         return None, None
 
-def preprocess_canvas_image(canvas_data):
+def preprocess_canvas_image_no_cv2(canvas_data):
     """
-    Advanced preprocessing to match MNIST format exactly
+    Preprocessing without OpenCV - using PIL and scipy instead
     """
     if canvas_data is None:
         return None
@@ -37,28 +37,31 @@ def preprocess_canvas_image(canvas_data):
     # Convert to numpy array
     img_array = np.array(img_gray)
     
-    # Find bounding box of the drawn digit[5]
-    coords = cv2.findNonZero(img_array)
-    if coords is not None:
-        x, y, w, h = cv2.boundingRect(coords)
+    # Find bounding box using numpy operations
+    rows = np.any(img_array, axis=1)
+    cols = np.any(img_array, axis=0)
+    
+    if rows.any() and cols.any():
+        rmin, rmax = np.where(rows)[0][[0, -1]]
+        cmin, cmax = np.where(cols)[0][[0, -1]]
         
-        # Add some padding around the digit
+        # Add padding
         padding = 20
-        x = max(0, x - padding)
-        y = max(0, y - padding)
-        w = min(img_array.shape[1] - x, w + 2 * padding)
-        h = min(img_array.shape[0] - y, h + 2 * padding)
+        rmin = max(0, rmin - padding)
+        rmax = min(img_array.shape[0], rmax + padding)
+        cmin = max(0, cmin - padding)
+        cmax = min(img_array.shape[1], cmax + padding)
         
         # Crop to bounding box
-        img_cropped = img_array[y:y+h, x:x+w]
+        img_cropped = img_array[rmin:rmax, cmin:cmax]
     else:
         img_cropped = img_array
     
-    # Resize to 20x20 first (like MNIST preprocessing)[5]
+    # Resize to 20x20 first
     img_pil = Image.fromarray(img_cropped)
     img_20x20 = img_pil.resize((20, 20), Image.Resampling.LANCZOS)
     
-    # Create 28x28 image with 4-pixel border[5]
+    # Create 28x28 image with 4-pixel border
     img_28x28 = Image.new('L', (28, 28), 0)
     img_28x28.paste(img_20x20, (4, 4))
     
@@ -81,10 +84,9 @@ if clf is not None and scaler is not None:
     
     with col1:
         st.markdown("**Drawing Canvas:**")
-        # Optimized canvas settings for better digit drawing[1][2]
         canvas_result = st_canvas(
             fill_color='#000000',
-            stroke_width=12,  # Optimal stroke width
+            stroke_width=12,
             stroke_color='#FFFFFF',
             background_color='#000000',
             height=280,
@@ -108,8 +110,8 @@ if clf is not None and scaler is not None:
         # Check if something is drawn
         if np.any(canvas_result.image_data[:, :, 3] > 0):
             
-            # Preprocess the image
-            processed_img = preprocess_canvas_image(canvas_result.image_data)
+            # Preprocess the image (without OpenCV)
+            processed_img = preprocess_canvas_image_no_cv2(canvas_result.image_data)
             
             if processed_img is not None:
                 # Display processed image
@@ -140,19 +142,13 @@ if clf is not None and scaler is not None:
                 
                 # Detailed probability breakdown
                 st.markdown("**All Probabilities:**")
-                prob_data = {f"Digit {i}": f"{prob:.3f}" for i, prob in enumerate(probabilities)}
-                
-                # Create horizontal bar chart
                 import pandas as pd
+                prob_data = {f"Digit {i}": prob for i, prob in enumerate(probabilities)}
                 df = pd.DataFrame(list(prob_data.items()), columns=['Digit', 'Probability'])
-                df['Probability'] = df['Probability'].astype(float)
-                
-                # Highlight the predicted digit
-                colors = ['#ff6b6b' if i == prediction else '#4ecdc4' for i in range(10)]
                 
                 st.bar_chart(df.set_index('Digit')['Probability'])
                 
-                # Additional feedback for low confidence predictions
+                # Additional feedback
                 if confidence < 0.7:
                     st.warning("⚠️ Low confidence prediction. Try redrawing the digit more clearly.")
                 elif confidence > 0.95:
@@ -160,24 +156,6 @@ if clf is not None and scaler is not None:
         
         else:
             st.info("👆 Draw a digit on the canvas above to see the prediction!")
-    
-    # Model information
-    st.markdown("---")
-    st.markdown("### 📊 Model Information")
-    col5, col6 = st.columns(2)
-    
-    with col5:
-        st.markdown("**Algorithm:** Logistic Regression")
-        st.markdown("**Dataset:** MNIST (70,000 samples)")
-        st.markdown("**Input:** 28×28 grayscale images")
-    
-    with col6:
-        st.markdown("**Classes:** 10 digits (0-9)")
-        st.markdown("**Preprocessing:** StandardScaler")
-        st.markdown("**Regularization:** L2 penalty")
 
 else:
     st.error("❌ Model files not found!")
-    st.markdown("Please run the training script first to generate:")
-    st.code("logistic_regression_mnist_model.joblib")
-    st.code("mnist_scaler.joblib")
