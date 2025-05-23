@@ -18,7 +18,14 @@ Install all dependencies using:
 
 requirements.txt contains:
 
-```scikit-learn```
-```numpy```
-```joblib```
-```streamlit```
+streamlit
+streamlit-drawable-canvas
+scikit-learn
+numpy
+pandas
+pillow
+opencv-python
+joblib
+matplotlib
+seaborn
+scipy
