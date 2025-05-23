@@ -133,9 +133,9 @@ def display_results(prediction, probabilities, confidence, processed_img):
     
     # Additional feedback
     if confidence < 0.7:
-        st.warning("⚠️ Low confidence prediction. Try with a clearer image.")
+        st.warning("Low confidence prediction. Try with a clearer image.")
     elif confidence > 0.95:
-        st.success("✅ High confidence prediction!")
+        st.success("High confidence prediction!")
 
 # Load model
 clf, scaler = load_model()
@@ -144,7 +144,7 @@ st.title('🔢 MNIST Digit Recognition')
 st.markdown("### Choose your input method:")
 
 # Create tabs for different input methods
-tab1, tab2 = st.tabs(["📝 Draw on Canvas", "📁 Upload Image"])
+tab1, tab2 = st.tabs(["Draw on Canvas", "Upload Image"])
 
 if clf is not None and scaler is not None:
     
@@ -186,7 +186,7 @@ if clf is not None and scaler is not None:
                     prediction, probabilities, confidence = make_prediction(processed_img, clf, scaler)
                     display_results(prediction, probabilities, confidence, processed_img)
             else:
-                st.info("👆 Draw a digit on the canvas above to see the prediction!")
+                st.info(" Draw a digit on the canvas above to see the prediction!")
     
     with tab2:
         st.markdown("### Upload an image containing a digit")
@@ -221,11 +221,11 @@ if clf is not None and scaler is not None:
                 prediction, probabilities, confidence = make_prediction(processed_img, clf, scaler)
                 display_results(prediction, probabilities, confidence, processed_img)
         else:
-            st.info("📁 Upload an image file to see the prediction!")
+            st.info("Upload an image file to see the prediction!")
     
     # Model information
     st.markdown("---")
-    st.markdown("### 📊 Model Information")
+    st.markdown("Model Information")
     col7, col8 = st.columns(2)
     
     with col7:
@@ -239,7 +239,7 @@ if clf is not None and scaler is not None:
         st.markdown("**Regularization:** L2 penalty")
 
 else:
-    st.error("❌ Model files not found!")
+    st.error("Model files not found!")
     st.markdown("Please ensure these files exist in your project:")
     st.code("logistic_regression_mnist_model.joblib")
     st.code("mnist_scaler.joblib")
