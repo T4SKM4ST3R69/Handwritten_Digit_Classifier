@@ -41,3 +41,12 @@ requirements.txt contains:
 ```streamlit_app.py``` - Streamlit app for prediction
 
 ```requirements.txt``` - Required packages
+
+## Clonning the Repo
+
+```git clone https://github.com/T4SKM4ST3R69/Handwritten_Digit_Classifier ```
+```cd Handwritten_Digit_Classifier ```
+
+## Streamlit App Deployment
+
+```https://handwrittendigitclassifier-glwsqtmxachv7jvvtdaizt.streamlit.app/```
