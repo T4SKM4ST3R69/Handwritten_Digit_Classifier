@@ -29,3 +29,15 @@ requirements.txt contains:
 - matplotlib
 - seaborn
 - scipy
+
+## Files
+
+```hndwritten_log_reg.ipynb``` - Jupyter notebook for training the model
+
+```logistic_regression_mnist_model.joblib```- Trained logistic regression model
+
+```mnist_scaler.joblib``` - Feature scaler
+
+```streamlit_app.py``` - Streamlit app for prediction
+
+```requirements.txt``` - Required packages
